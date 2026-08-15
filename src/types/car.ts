@@ -3,3 +3,7 @@ export type Car = {
   name: string;
   color: string;
 };
+export type CreateCarData = {
+  name: string;
+  color: string;
+};
