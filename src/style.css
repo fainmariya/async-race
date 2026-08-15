@@ -1,0 +1,143 @@
+:root {
+  --background: #0b0d0f;
+  --surface: #15181c;
+  --border: #292d32;
+  --text: #f4f4f2;
+  --muted: #8b9198;
+  --accent: #d7ff3f;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+}
+#app {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 28px 32px 48px;
+}
+
+.app-title {
+  margin: 0 0 18px;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.nav-button {
+  margin-right: 8px;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 9px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.nav-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.garage__header {
+  margin-top: 40px;
+  padding-bottom: 16px;
+  border-bottom: 1.5px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.garage__title {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 0.9;
+}
+.garage__count {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.garage__controls {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 28px;
+}
+.garage__panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 24px;
+  min-height: 120px;
+
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  border-top: 1px solid var(--accent);
+}
+.garage__panel-title {
+  margin: 0 0 20px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.garage__action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+.garage__input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  background: var(--background);
+  color: var(--text);
+  border: 1px solid var(--border);
+  font: inherit;
+  outline: none;
+}
+.garage__input:focus {
+  border-color: var(--accent);
+}
+.garage__color {
+  width: 48px;
+  height: 40px;
+  padding: 4px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.garage__action-button {
+  padding: 12px 18px;
+  background: var(--accent);
+  color: var(--background);
+  border: 1px solid var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.garage__action-button:not(:disabled):hover {
+  background: transparent;
+  color: var(--accent);
+}
+.garage__action-button:disabled {
+  background: var(--border);
+  color: var(--muted);
+  border-color: var(--border);
+  cursor: not-allowed;
+}
