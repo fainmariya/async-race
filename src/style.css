@@ -141,3 +141,70 @@ body {
   border-color: var(--border);
   cursor: not-allowed;
 }
+.garage-car__select {
+  padding: 7px 12px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.garage-car__select:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.garage__list {
+  margin-top: 24px;
+}
+
+.garage-car {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.garage-car__name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.garage-car__select {
+  padding: 7px 12px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.garage-car__select:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.garage-car__delete {
+  padding: 7px 12px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.garage-car__delete:hover {
+  color: #ff5c5c;
+  border-color: #ff5c5c;
+}
