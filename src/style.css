@@ -269,3 +269,8 @@ body {
   background: var(--accent);
   color: var(--background);
 }
+.garage-car__svg {
+  width: 80px;
+  height: 40px;
+  flex-shrink: 0;
+}

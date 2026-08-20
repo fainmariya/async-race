@@ -31,3 +31,10 @@ export const CAR_MODELS = [
   export const HEX_COLOR_LENGTH = 6;
   export const GENERATE_CARS_BUTTON_TEXT = 'GENERATE 100 CARS';
   export const GENERATED_CARS_COUNT = 100;
+  export const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+  export const CAR_BODY_PATH =
+  'M7 29 Q8 25 14 24 L25 22 L34 14 Q36 12 40 12 L59 12 Q63 12 66 15 L75 22 L87 25 Q92 26 92 30 L92 32 L8 32 Q7 32 7 29 Z';
+  export const CAR_REAR_WHEEL_X = '25';
+  export const CAR_FRONT_WHEEL_X = '70';
+  export const CAR_WHEEL_Y = '32';
+  export const CAR_WHEEL_RADIUS = '5';

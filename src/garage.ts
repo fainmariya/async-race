@@ -1,5 +1,14 @@
 import type { Car, CreateCarData } from './types/car';
-import { GARAGE_PAGE_SIZE, GENERATE_CARS_BUTTON_TEXT } from './constants';
+import { 
+    GARAGE_PAGE_SIZE, 
+    GENERATE_CARS_BUTTON_TEXT, 
+    SVG_NAMESPACE, 
+    CAR_BODY_PATH,
+    CAR_REAR_WHEEL_X,
+    CAR_WHEEL_Y,
+    CAR_WHEEL_RADIUS,
+    CAR_FRONT_WHEEL_X,
+} from './constants';
 
 
 function createGarageHeader(count: number): HTMLElement {
@@ -134,11 +143,38 @@ function createUpdatePanel(
       }
     return updatePanel;
 }
+  function createCarSvg(color: string): SVGSVGElement {
+    const elementCar = document.createElementNS(SVG_NAMESPACE, 'svg');
+    elementCar.setAttribute('viewBox', '0 0 100 40');
+    elementCar.classList.add('garage-car__svg');
+    const carBody = document.createElementNS(SVG_NAMESPACE, 'path');
+    carBody.setAttribute('d',CAR_BODY_PATH);
+    carBody.setAttribute('fill', color);
+
+    const leftWheel = document.createElementNS(SVG_NAMESPACE, 'circle');
+    leftWheel.classList.add('garage-car__wheel');
+    leftWheel.setAttribute('cx', CAR_REAR_WHEEL_X);
+    leftWheel.setAttribute('cy', CAR_WHEEL_Y);
+    leftWheel.setAttribute('r', CAR_WHEEL_RADIUS); 
+    leftWheel.setAttribute('fill', color);
+    
+    const rightWheel = document.createElementNS(SVG_NAMESPACE, 'circle');
+    rightWheel.classList.add('garage-car__wheel');
+    rightWheel.setAttribute('cx', CAR_FRONT_WHEEL_X);
+    rightWheel.setAttribute('cy', CAR_WHEEL_Y);
+    rightWheel.setAttribute('r', CAR_WHEEL_RADIUS); 
+    rightWheel.setAttribute('fill', color);
+    
+        
+    elementCar.append(carBody, leftWheel, rightWheel);
+    return elementCar;
+    }
   function createCarItem(
     car: Car,
     onSelect: (car: Car) => void,
     onDelete: (id: number) => Promise<void>,
   ): HTMLElement {
+
     const garageCar = document.createElement('article');
     garageCar.className = 'garage-car';
     const garageCarTitle = document.createElement('h3');
@@ -151,7 +187,7 @@ function createUpdatePanel(
     garageCarDelete.textContent = 'DELETE';
 
     garageCarDelete.addEventListener('click', async () => {
-      await onDelete(car.id)
+      await onDelete(car.id);
     })
 
     const buttonSelectCar = document.createElement('button');
@@ -162,7 +198,8 @@ function createUpdatePanel(
     buttonSelectCar.addEventListener('click', () => {
         onSelect(car);
     });
-    garageCar.append(garageCarDelete, buttonSelectCar, garageCarTitle);
+    const carSvg = createCarSvg(car.color);
+    garageCar.append(garageCarDelete, buttonSelectCar, garageCarTitle, carSvg);
     return garageCar;
 }
 
