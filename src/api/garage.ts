@@ -1,21 +1,35 @@
-import type { Car, CreateCarData } from '../types/car';
+import type { Car, CreateCarData, GaragePageData } from '../types/car';
 import { API_BASE_URL, GARAGE_ENDPOINT } from '../constants';
 import { isCar, isCarArray } from '../utils/type-guards';
 
-export async function getCars(): Promise<Car[]> {
-  const response = await fetch(`${API_BASE_URL}${GARAGE_ENDPOINT}`);
+export async function getCars(
+    page: number,
+    limit: number,
+): Promise<GaragePageData> {
+  const response = await fetch(`${API_BASE_URL}${GARAGE_ENDPOINT}?_page=${page}&_limit=${limit}`);
 
-  if (!response.ok){
-      throw new Error('Failed to fetch cars.');
-      }
+  if (!response.ok) {
+    throw new Error('Failed to fetch cars.');
+    }
 
   const data: unknown = await response.json();
+  const xTotalCount = response.headers.get('X-Total-Count');
+  if (xTotalCount === null) {
+    throw new Error('Total cars count is missing.');
+  }
+  const total = Number(xTotalCount);
+  if (Number.isNaN(total)) {
+    throw new TypeError('Invalid total cars count.');
+  }
 
   if (!isCarArray(data)) {
     throw new Error('Invalid cars data.');
   }
 
-  return data
+  return {
+    cars: data,
+    total,
+  };
 }
 
 export async function createCar(
@@ -65,6 +79,6 @@ export async function deleteCar(
         method: 'DELETE', 
 })
 if (!response.ok) {
-    throw new Error('Failed to delete car.')
+    throw new TypeError('Failed to delete car.')
 }
 }

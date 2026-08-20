@@ -208,3 +208,64 @@ body {
   color: #ff5c5c;
   border-color: #ff5c5c;
 }
+.garage__pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.garage__page {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.garage__pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.garage__pagination-button {
+  padding: 7px 12px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.garage__pagination-button:not(:disabled):hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.garage__pagination-button:disabled {
+  color: var(--border);
+  border-color: var(--border);
+  cursor: not-allowed;
+}
+.garage__generate-button {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  padding: 12px 20px;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.garage__generate-button:hover {
+  background: var(--accent);
+  color: var(--background);
+}

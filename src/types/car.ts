@@ -7,3 +7,7 @@ export type CreateCarData = {
   name: string;
   color: string;
 };
+export type GaragePageData = {
+    cars: Car[];
+    total: number;
+  };

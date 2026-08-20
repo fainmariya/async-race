@@ -2,9 +2,10 @@ import './style.css';
 import { createGarageView } from './garage';
 import { createCar, getCars, deleteCar, updateCar } from './api/garage';
 import type { CreateCarData } from './types/car';
-import {  appState, setCurrentView, setSelectedCar } from './app-state';
+import {  appState, setCurrentView, setSelectedCar, setGaragePage } from './app-state';
 import type { Car } from './types/car';
-
+import { GARAGE_PAGE_SIZE, GENERATED_CARS_COUNT } from './constants';
+import { getRandomCarData } from './utils/random-car';
 
 const appElement = document.querySelector<HTMLDivElement>('#app');
 if (!appElement) {
@@ -35,22 +36,43 @@ const viewContainer = document.createElement('main');
 viewContainer.className = 'view-container';
 appElement.append(viewContainer);
 
-const listOfCars = await getCars();
+const pageData = await getCars(appState.garagePage, 
+  GARAGE_PAGE_SIZE);
+
 viewContainer.append(createGarageView(
-  listOfCars,
+  pageData.cars,
+  pageData.total,
+  appState.garagePage,
   handleCreateCar,
   handleSelectCar,
   appState.selectedCar,
   handleUpdateCar,
-  handleDeleteCar
+  handleDeleteCar,
+  handlePageChange,
+  handleGenerateCars,
 ));
 
 async function handleCreateCar(
   data: CreateCarData,
 ): Promise<void> {
   await createCar(data);
-  const cars = await getCars();
-  const garageView = createGarageView(cars, handleCreateCar, handleSelectCar, appState.selectedCar, handleUpdateCar, handleDeleteCar,);
+  const pageData = await getCars(
+    appState.garagePage,
+    GARAGE_PAGE_SIZE,
+  );
+  
+  const garageView = createGarageView(
+    pageData.cars, 
+    pageData.total, 
+    appState.garagePage,
+    handleCreateCar, 
+    handleSelectCar, 
+    appState.selectedCar, 
+    handleUpdateCar, 
+    handleDeleteCar,
+    handlePageChange,
+    handleGenerateCars,
+  );
   viewContainer.replaceChildren(garageView);
 }
 function handleSelectCar(car: Car): void {
@@ -60,17 +82,24 @@ async function handleUpdateCar(
   id: number,
   data: CreateCarData,
 ): Promise<void> {
-  const updatedCar = await updateCar(id, data);
-  setSelectedCar(updatedCar);
+  await updateCar(id, data);
   setSelectedCar(undefined);
-  const cars = await getCars();
+  const pageData = await getCars(
+    appState.garagePage,
+    GARAGE_PAGE_SIZE,
+  );
+  
   const garageView = createGarageView(
-    cars,
+    pageData.cars, 
+    pageData.total,
+    appState.garagePage,
     handleCreateCar,
     handleSelectCar,
     appState.selectedCar,
     handleUpdateCar,
     handleDeleteCar,
+    handlePageChange,
+    handleGenerateCars,
 
   );
   viewContainer.replaceChildren(garageView);
@@ -79,18 +108,81 @@ async function handleDeleteCar(
   id: number,
 ): Promise<void> {
   await deleteCar(id);
-  const cars = await getCars();
+  
   if (appState.selectedCar !== undefined 
     && appState.selectedCar.id === id) {
       setSelectedCar(undefined);
     }
+    let pageData = await getCars(
+      appState.garagePage,
+      GARAGE_PAGE_SIZE,
+    );
+    if (pageData.cars.length === 0 &&
+      appState.garagePage > 1){
+       setGaragePage(appState.garagePage - 1);
+       pageData = await getCars(appState.garagePage,
+        GARAGE_PAGE_SIZE,
+       )
+      }
   const garageView = createGarageView(
-    cars,
+    
+    pageData.cars,
+    pageData.total,
+    appState.garagePage,
     handleCreateCar,
     handleSelectCar,
     appState.selectedCar,
     handleUpdateCar,
-    handleDeleteCar
+    handleDeleteCar,
+    handlePageChange,
+    handleGenerateCars,
   );
   viewContainer.replaceChildren(garageView);
+}
+async function handlePageChange(
+  page: number,
+): Promise<void> {
+
+  setGaragePage(page);
+  const pageData = await getCars(
+    appState.garagePage,
+    GARAGE_PAGE_SIZE,
+  );
+  const garageView = createGarageView(
+    pageData.cars,
+    pageData.total,
+    appState.garagePage,
+    handleCreateCar,
+    handleSelectCar,
+    appState.selectedCar,
+    handleUpdateCar,
+    handleDeleteCar,
+    handlePageChange,
+    handleGenerateCars,
+  );
+  viewContainer.replaceChildren(garageView);
+}
+async function handleGenerateCars(): Promise<void> {
+  for (let index = 0; index < GENERATED_CARS_COUNT; index += 1){
+    const randomCar  = getRandomCarData();
+    await createCar(randomCar);
+  }
+  const pageData = await getCars(
+    appState.garagePage,
+    GARAGE_PAGE_SIZE,
+  ); 
+  const garageView = createGarageView(
+    pageData.cars,
+    pageData.total,
+    appState.garagePage,
+    handleCreateCar,
+    handleSelectCar,
+    appState.selectedCar,
+    handleUpdateCar,
+    handleDeleteCar,
+    handlePageChange,
+    handleGenerateCars,
+  );
+  viewContainer.replaceChildren(garageView);
+ 
 }

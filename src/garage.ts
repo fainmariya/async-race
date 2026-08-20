@@ -1,4 +1,6 @@
 import type { Car, CreateCarData } from './types/car';
+import { GARAGE_PAGE_SIZE, GENERATE_CARS_BUTTON_TEXT } from './constants';
+
 
 function createGarageHeader(count: number): HTMLElement {
     const garageHeader = document.createElement('header');
@@ -177,6 +179,8 @@ function renderCars(
   }
 export function createGarageView(
     cars: Car[], 
+    total: number,
+    page: number,
     onCreate: (data: CreateCarData) => Promise<void>,
     onSelect: (car: Car) => void,
     selectedCar: Car | undefined,
@@ -185,13 +189,16 @@ export function createGarageView(
         data: CreateCarData,
     ) => Promise<void>,
     onDelete: (id: number) => Promise<void>,
+    onPageChange: (page: number) => Promise<void>,
+    onGenerate: () => Promise<void>,
 ): HTMLElement {
     const element = document.createElement('section');
     element.className = 'garage';
     const garageControls = document.createElement('div');
     garageControls.className = 'garage__controls';
-    const count = cars.length;
-    const garageHeader = createGarageHeader(count);
+
+    const garageHeader = createGarageHeader(total);
+    
     const createPanel = createCreatePanel(onCreate);
     let updatePanel = createUpdatePanel(selectedCar, onUpdate);
     const handleSelectInView = (car: Car): void => {
@@ -202,12 +209,64 @@ export function createGarageView(
         updatePanel = newUpdatePanel;
       };
     garageControls.append(createPanel, updatePanel);
+    const totalPages = Math.ceil(total / GARAGE_PAGE_SIZE);
+    const garagePagination = createGaragePagination(page, totalPages, onPageChange);
     
     const garageList = document.createElement('section');
     garageList.className = 'garage__list';
     
+    
     renderCars(cars, garageList, handleSelectInView, onDelete);
-
-    element.append(garageHeader, garageControls, garageList);
+    const generateButton = createGenerateButton(onGenerate);
+    element.append(garageHeader, garageControls, generateButton, garageList, garagePagination);
     return element;
 }
+function createGaragePagination(
+    page: number,
+    totalPages: number,
+    onPageChange: (page: number) => Promise<void>,
+): HTMLElement {
+
+    const garagePagination = document.createElement('div');
+    garagePagination.className = 'garage__pagination';
+    const garagePage = document.createElement('span');
+    garagePage.className = 'garage__page';
+    garagePage.textContent = `PAGE${page}`;
+    garagePagination.append(garagePage);
+    
+    const garagePreviousButton = document.createElement('button');
+    garagePreviousButton.className = 'garage__pagination-button';
+    garagePreviousButton.type = 'button';
+    garagePreviousButton.textContent = 'PREV';
+    garagePreviousButton.addEventListener('click', async () => {
+      await onPageChange(page - 1)
+    })
+
+    const garageNextButton = document.createElement('button');
+    garageNextButton.className = 'garage__pagination-button';
+    garageNextButton.type = 'button';
+    garageNextButton.textContent = 'NEXT';
+    garageNextButton.addEventListener('click', async () => {
+      await onPageChange(page + 1)
+    })
+    garagePreviousButton.disabled = page <= 1;
+    garageNextButton.disabled = page >= totalPages;
+
+    garagePagination.append(garagePreviousButton, garagePage, garageNextButton);
+    
+
+    return garagePagination;
+}
+function createGenerateButton(
+    onGenerate: () => Promise<void>
+): HTMLButtonElement {
+    const generateButton = document.createElement('button');
+    generateButton.className = 'garage__generate-button';
+    generateButton.type = 'button';
+    generateButton.textContent = GENERATE_CARS_BUTTON_TEXT;
+    
+    generateButton.addEventListener('click', async () => {
+        await onGenerate()
+      });
+    return generateButton;
+  }
