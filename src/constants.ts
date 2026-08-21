@@ -38,3 +38,5 @@ export const CAR_MODELS = [
   export const CAR_FRONT_WHEEL_X = '70';
   export const CAR_WHEEL_Y = '32';
   export const CAR_WHEEL_RADIUS = '5';
+  export const ENGINE_ENDPOINT = '/engine';
+  export const ENGINE_BREAKDOWN_STATUS = 500;
