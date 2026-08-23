@@ -6,7 +6,10 @@ import {  appState, setCurrentView, setSelectedCar, setGaragePage } from './app-
 import type { Car } from './types/car';
 import { GARAGE_PAGE_SIZE, GENERATED_CARS_COUNT } from './constants';
 import { getRandomCarData } from './utils/random-car';
+import { startEngine, driveEngine, stopEngine } from './api/engine';
+import { animateCar, getAnimationDuration, getDistanceToFinish } from './utils/animation';
 
+const cancelAnimations = new Map<number, () => void>();
 const appElement = document.querySelector<HTMLDivElement>('#app');
 if (!appElement) {
   throw new Error('Application root element not found.');
@@ -50,6 +53,8 @@ viewContainer.append(createGarageView(
   handleDeleteCar,
   handlePageChange,
   handleGenerateCars,
+  handleStartCar,
+  handleStopCar,
 ));
 
 async function handleCreateCar(
@@ -72,6 +77,8 @@ async function handleCreateCar(
     handleDeleteCar,
     handlePageChange,
     handleGenerateCars,
+    handleStartCar,
+    handleStopCar,
   );
   viewContainer.replaceChildren(garageView);
 }
@@ -100,7 +107,8 @@ async function handleUpdateCar(
     handleDeleteCar,
     handlePageChange,
     handleGenerateCars,
-
+    handleStartCar,
+    handleStopCar,
   );
   viewContainer.replaceChildren(garageView);
 }
@@ -136,8 +144,52 @@ async function handleDeleteCar(
     handleDeleteCar,
     handlePageChange,
     handleGenerateCars,
+    handleStartCar,
+    handleStopCar,
   );
   viewContainer.replaceChildren(garageView);
+}
+async function handleStartCar(
+  id: number,
+  carElement: SVGSVGElement,
+  finishElement: HTMLElement,
+): Promise<void> { 
+  
+  const engineData = await startEngine(id);
+  const duration = getAnimationDuration(
+    engineData.distance,
+    engineData.velocity,
+  );
+
+  const distanceToFinish = getDistanceToFinish(
+    carElement,
+    finishElement,
+  );
+
+  const cancelAnimation = animateCar(
+    carElement,
+    distanceToFinish,
+    duration,
+  );
+  cancelAnimations.set(id, cancelAnimation);
+  const driveResult = await driveEngine(id);
+  if(driveResult.success === false) {
+    cancelAnimation()
+  }
+}
+async function handleStopCar(
+  id: number,
+  carElement: SVGSVGElement,
+): Promise<void> {
+  await stopEngine(id);
+  const cancelAnimation = cancelAnimations.get(id);
+
+if (cancelAnimation !== undefined) {
+  cancelAnimation();
+  cancelAnimations.delete(id);
+}
+
+carElement.style.transform = 'translateX(0px)';
 }
 async function handlePageChange(
   page: number,
@@ -159,6 +211,8 @@ async function handlePageChange(
     handleDeleteCar,
     handlePageChange,
     handleGenerateCars,
+    handleStartCar,
+    handleStopCar,
   );
   viewContainer.replaceChildren(garageView);
 }
@@ -182,6 +236,8 @@ async function handleGenerateCars(): Promise<void> {
     handleDeleteCar,
     handlePageChange,
     handleGenerateCars,
+    handleStartCar,
+    handleStopCar,
   );
   viewContainer.replaceChildren(garageView);
  

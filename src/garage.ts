@@ -8,7 +8,10 @@ import {
     CAR_WHEEL_Y,
     CAR_WHEEL_RADIUS,
     CAR_FRONT_WHEEL_X,
+    START_BUTTON_TEXT,
+    STOP_BUTTON_TEXT,
 } from './constants';
+
 
 
 function createGarageHeader(count: number): HTMLElement {
@@ -169,10 +172,39 @@ function createUpdatePanel(
     elementCar.append(carBody, leftWheel, rightWheel);
     return elementCar;
     }
+    type CarTrackElements = {
+        track: HTMLElement;
+        carSvg: SVGSVGElement;
+        finish: HTMLElement;
+      };
+    function createCarTrack(car: Car): CarTrackElements {
+    const track = document.createElement('div');
+    track.className = 'garage-car__track';
+
+    const finish = document.createElement('div');
+    finish.className = 'garage-car__finish';
+    const carSvg = createCarSvg(car.color);
+    track.append(carSvg, finish);
+        
+    return {
+        track,
+        carSvg,
+        finish
+      };
+    }
   function createCarItem(
     car: Car,
     onSelect: (car: Car) => void,
     onDelete: (id: number) => Promise<void>,
+    onStart: (
+        id: number,
+        carElement: SVGSVGElement,
+        finishElement: HTMLElement,
+      ) => Promise<void>,
+    onStop: (
+        id: number,
+        carElement: SVGSVGElement,
+      ) => Promise<void>,
   ): HTMLElement {
 
     const garageCar = document.createElement('article');
@@ -188,7 +220,7 @@ function createUpdatePanel(
 
     garageCarDelete.addEventListener('click', async () => {
       await onDelete(car.id);
-    })
+    });
 
     const buttonSelectCar = document.createElement('button');
     buttonSelectCar.className = 'garage-car__select';
@@ -198,9 +230,25 @@ function createUpdatePanel(
     buttonSelectCar.addEventListener('click', () => {
         onSelect(car);
     });
-    const carSvg = createCarSvg(car.color);
-    garageCar.append(garageCarDelete, buttonSelectCar, garageCarTitle, carSvg);
+    const { track, carSvg, finish } = createCarTrack(car);
+    const carInfo = document.createElement('div');
+    carInfo.className = 'garage-car__info';
+    const engineControls = createEngineControls(
+        () => onStart(car.id, carSvg, finish),
+        () => onStop(car.id, carSvg),
+      );
+    carInfo.append(
+        garageCarDelete,
+        buttonSelectCar,
+        garageCarTitle,
+        engineControls
+    );
+    garageCar.append(
+        carInfo,
+        track,
+    );
     return garageCar;
+    
 }
 
 function renderCars(
@@ -208,9 +256,18 @@ function renderCars(
     container: HTMLElement,
     onSelect: (car: Car) => void,
     onDelete: (id: number) => Promise<void>,
+    onStart: (
+        id: number,
+        carElement: SVGSVGElement,
+        finishElement: HTMLElement,
+      ) => Promise<void>,
+    onStop: (
+        id: number,
+        carElement: SVGSVGElement,
+      ) => Promise<void>,
   ): void {
     for (const car of cars) {
-        const carElement = createCarItem(car, onSelect, onDelete);
+        const carElement = createCarItem(car, onSelect, onDelete, onStart, onStop);
         container.append(carElement);
     }
   }
@@ -228,6 +285,15 @@ export function createGarageView(
     onDelete: (id: number) => Promise<void>,
     onPageChange: (page: number) => Promise<void>,
     onGenerate: () => Promise<void>,
+    onStart: (
+        id: number,
+        carElement: SVGSVGElement,
+        finishElement: HTMLElement,
+      ) => Promise<void>,
+    onStop: (
+        id: number,
+        carElement: SVGSVGElement,
+      ) => Promise<void>,
 ): HTMLElement {
     const element = document.createElement('section');
     element.className = 'garage';
@@ -253,7 +319,7 @@ export function createGarageView(
     garageList.className = 'garage__list';
     
     
-    renderCars(cars, garageList, handleSelectInView, onDelete);
+    renderCars(cars, garageList, handleSelectInView, onDelete, onStart, onStop);
     const generateButton = createGenerateButton(onGenerate);
     element.append(garageHeader, garageControls, generateButton, garageList, garagePagination);
     return element;
@@ -306,4 +372,39 @@ function createGenerateButton(
         await onGenerate()
       });
     return generateButton;
+  }
+  function createEngineControls(
+    onStart: () => Promise<void>,
+    onStop: () => Promise<void>,
+  ): HTMLElement {
+    const controls = document.createElement('div');
+    controls.className = 'garage-car__engine-controls';
+    
+    const startButton = document.createElement('button');
+    startButton.className = 'garage-car__start';
+    startButton.type = 'button';
+
+    const stopButton = document.createElement('button');
+    stopButton.className = 'garage-car__stop';
+    stopButton.type = 'button';
+    stopButton.disabled = true;
+   
+    startButton.textContent = START_BUTTON_TEXT;
+    stopButton.textContent = STOP_BUTTON_TEXT; 
+    startButton.addEventListener('click', async () => {
+        
+        startButton.disabled = true;
+        stopButton.disabled = false;
+
+        await onStart();
+      });   
+    stopButton.addEventListener('click', async () => {
+        await onStop();
+
+        startButton.disabled = false;
+        stopButton.disabled = true;
+    })
+    controls.append(startButton, stopButton);
+  
+    return controls;
   }

@@ -40,3 +40,5 @@ export const CAR_MODELS = [
   export const CAR_WHEEL_RADIUS = '5';
   export const ENGINE_ENDPOINT = '/engine';
   export const ENGINE_BREAKDOWN_STATUS = 500;
+  export const START_BUTTON_TEXT = 'START';
+  export const STOP_BUTTON_TEXT = 'STOP'; 
