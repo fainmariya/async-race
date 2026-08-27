@@ -335,3 +335,103 @@ body {
   opacity: 0.35;
   cursor: not-allowed;
 }
+.garage-car__race-reset {
+  display: flex;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.garage__race,
+.garage__reset {
+  padding: 8px 18px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.garage__race {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.garage__race:not(:disabled):hover {
+  background: var(--accent);
+  color: var(--background);
+}
+
+.garage__reset:not(:disabled):hover {
+  border-color: var(--text);
+  color: var(--text);
+}
+
+.garage__race:disabled,
+.garage__reset:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.modal__dialog {
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 60px rgb(0 0 0 / 45%);
+  background: var(--surface);
+  color: var(--text);
+  padding: 32px;
+  width: min(420px, calc(100% - 32px));
+  border-radius: 8px;
+  text-align: center;
+}
+.modal__dialog[open] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal__dialog::backdrop {
+  background: rgb(0 0 0 / 70%);
+}
+
+.modal__title {
+  margin: 0 0 24px;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.modal__name-car {
+  margin: 0 0 16px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.modal__time-car {
+  margin: 0 0 24px;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.modal__button-close {
+  padding: 10px 18px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.modal__button-close:hover {
+  background: var(--accent);
+  color: var(--background);
+}

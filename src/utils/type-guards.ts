@@ -1,5 +1,6 @@
 import type { Car } from '../types/car';
 import type { EngineResponse, DriveResponse } from '../types/engine';
+import type { Winner } from '../types/winner';
 
 export function isCar(value: unknown): value is Car {
   if (
@@ -48,4 +49,21 @@ export function isEngineResponse(
               );
         } return false;
     
+  }
+  export function isWinner(
+    value: unknown,
+  ): value is Winner {
+   if (typeof value === 'object'
+    && value !== null
+    && 'id' in value
+    && 'wins' in value
+    && 'time' in value
+) {
+    return (
+        typeof value.id === 'number'
+        && typeof value.wins === 'number'
+        && typeof value.time === 'number'
+    )
+   }
+   return false;
   }

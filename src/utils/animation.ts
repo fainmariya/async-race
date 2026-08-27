@@ -1,31 +1,55 @@
+
+import type { AnimationController } from '../types/animation';
+
 export function animateCar(
     carElement: SVGSVGElement,
     distance: number,
     duration: number,
-  ): () => void {
+  ): AnimationController {
     let startTime: number | undefined;
     let animationFrameId: number | undefined;
-    function step(currentTime: number): void {
-        if (startTime === undefined ){
+    let cancelAnimation: (() => void) | undefined;
+  
+    const finished = new Promise<boolean>((resolve) => {
+      function step(currentTime: number): void {
+        if (startTime === undefined) {
           startTime = currentTime;
         }
-       const elapsedTime = currentTime - startTime;
-       if (elapsedTime >= duration) {
-        carElement.style.transform = `translateX(${distance}px)`;
-        return;
+  
+        const elapsedTime = currentTime - startTime;
+  
+        if (elapsedTime >= duration) {
+          carElement.style.transform = `translateX(${distance}px)`;
+          resolve(true);
+          return;
+        }
+  
+        const progress = elapsedTime / duration;
+        const position = distance * progress;
+  
+        carElement.style.transform = `translateX(${position}px)`;
+        animationFrameId = requestAnimationFrame(step);
       }
-    const progress = elapsedTime / duration;
-    const position = distance * progress;
-    carElement.style.transform = `translateX(${position}px)`;   
-    animationFrameId = requestAnimationFrame(step); 
-    }
-    function cancelAnimation(): void {
+  
+      cancelAnimation = (): void => {
         if (animationFrameId !== undefined) {
           cancelAnimationFrame(animationFrameId);
-          }
         }
-    animationFrameId = requestAnimationFrame(step);
-    return cancelAnimation;
+  
+        resolve(false);
+      };
+  
+      animationFrameId = requestAnimationFrame(step);
+    });
+  
+    return {
+      cancel: () => {
+        if (cancelAnimation !== undefined) {
+          cancelAnimation();
+        }
+      },
+      finished,
+    };
   }
 export function getDistanceToFinish(
   carElement: SVGSVGElement,

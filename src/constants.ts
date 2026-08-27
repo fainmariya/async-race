@@ -42,3 +42,17 @@ export const CAR_MODELS = [
   export const ENGINE_BREAKDOWN_STATUS = 500;
   export const START_BUTTON_TEXT = 'START';
   export const STOP_BUTTON_TEXT = 'STOP'; 
+  export const RACE_BUTTON_TEXT = 'RACE';
+  export const RESET_BUTTON_TEXT = 'RESET';
+  export const SELECTCAR = 'SELECT';
+  export const DELETECAR = 'DELETE';
+  export const PREVIOUSBUTTON = 'PREV';
+  export const NEXTBUTTON = 'NEXT';
+  export const MILLISECONDS_PER_SECOND = 1000;
+  export const CAR_WINNER = 'WINNER';
+  export const BUTTON_CLOSE = 'CLOSE';
+  export const WINNERS_ENDPOINT = '/winners';
+  export const HTTP_NOT_FOUND_STATUS = 404;
+  export const INITIAL_WIN_COUNT = 1;
+  export const WIN_INCREMENT = 1;
+

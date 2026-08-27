@@ -4,10 +4,15 @@ import { createCar, getCars, deleteCar, updateCar } from './api/garage';
 import type { CreateCarData } from './types/car';
 import {  appState, setCurrentView, setSelectedCar, setGaragePage } from './app-state';
 import type { Car } from './types/car';
-import { GARAGE_PAGE_SIZE, GENERATED_CARS_COUNT } from './constants';
+import { GARAGE_PAGE_SIZE, GENERATED_CARS_COUNT, MILLISECONDS_PER_SECOND, INITIAL_WIN_COUNT, WIN_INCREMENT } from './constants';
 import { getRandomCarData } from './utils/random-car';
 import { startEngine, driveEngine, stopEngine } from './api/engine';
 import { animateCar, getAnimationDuration, getDistanceToFinish } from './utils/animation';
+import type { RaceCar, RaceResult } from './types/race';
+import type { Winner} from './types/winner';
+import { getWinner, updateWinner } from './api/winners';
+import { createWinner } from './api/winners';
+
 
 const cancelAnimations = new Map<number, () => void>();
 const appElement = document.querySelector<HTMLDivElement>('#app');
@@ -46,15 +51,19 @@ viewContainer.append(createGarageView(
   pageData.cars,
   pageData.total,
   appState.garagePage,
-  handleCreateCar,
-  handleSelectCar,
   appState.selectedCar,
-  handleUpdateCar,
-  handleDeleteCar,
-  handlePageChange,
-  handleGenerateCars,
-  handleStartCar,
-  handleStopCar,
+  {
+    onCreate:handleCreateCar,
+    onSelect:handleSelectCar,
+    onUpdate: handleUpdateCar,
+    onDelete: handleDeleteCar,
+    onPageChange: handlePageChange,
+    onGenerate: handleGenerateCars,
+    onStart: handleStartCar,
+    onStop: handleStopCar,
+    onRace: handleRace,
+    onReset: handleReset,
+  }
 ));
 
 async function handleCreateCar(
@@ -70,15 +79,19 @@ async function handleCreateCar(
     pageData.cars, 
     pageData.total, 
     appState.garagePage,
-    handleCreateCar, 
-    handleSelectCar, 
     appState.selectedCar, 
-    handleUpdateCar, 
-    handleDeleteCar,
-    handlePageChange,
-    handleGenerateCars,
-    handleStartCar,
-    handleStopCar,
+    {
+      onCreate:handleCreateCar,
+      onSelect:handleSelectCar,
+      onUpdate: handleUpdateCar,
+      onDelete: handleDeleteCar,
+      onPageChange: handlePageChange,
+      onGenerate: handleGenerateCars,
+      onStart: handleStartCar,
+      onStop: handleStopCar,
+      onRace: handleRace,
+      onReset: handleReset,
+    }
   );
   viewContainer.replaceChildren(garageView);
 }
@@ -100,15 +113,19 @@ async function handleUpdateCar(
     pageData.cars, 
     pageData.total,
     appState.garagePage,
-    handleCreateCar,
-    handleSelectCar,
     appState.selectedCar,
-    handleUpdateCar,
-    handleDeleteCar,
-    handlePageChange,
-    handleGenerateCars,
-    handleStartCar,
-    handleStopCar,
+    {
+      onCreate:handleCreateCar,
+      onSelect:handleSelectCar,
+      onUpdate: handleUpdateCar,
+      onDelete: handleDeleteCar,
+      onPageChange: handlePageChange,
+      onGenerate: handleGenerateCars,
+      onStart: handleStartCar,
+      onStop: handleStopCar,
+      onRace: handleRace,
+      onReset: handleReset,
+    }
   );
   viewContainer.replaceChildren(garageView);
 }
@@ -137,15 +154,19 @@ async function handleDeleteCar(
     pageData.cars,
     pageData.total,
     appState.garagePage,
-    handleCreateCar,
-    handleSelectCar,
     appState.selectedCar,
-    handleUpdateCar,
-    handleDeleteCar,
-    handlePageChange,
-    handleGenerateCars,
-    handleStartCar,
-    handleStopCar,
+    {
+      onCreate:handleCreateCar,
+      onSelect:handleSelectCar,
+      onUpdate: handleUpdateCar,
+      onDelete: handleDeleteCar,
+      onPageChange: handlePageChange,
+      onGenerate: handleGenerateCars,
+      onStart: handleStartCar,
+      onStop: handleStopCar,
+      onRace: handleRace,
+      onReset: handleReset,
+    }
   );
   viewContainer.replaceChildren(garageView);
 }
@@ -153,7 +174,7 @@ async function handleStartCar(
   id: number,
   carElement: SVGSVGElement,
   finishElement: HTMLElement,
-): Promise<void> { 
+): Promise<number | undefined> { 
   
   const engineData = await startEngine(id);
   const duration = getAnimationDuration(
@@ -166,16 +187,26 @@ async function handleStartCar(
     finishElement,
   );
 
-  const cancelAnimation = animateCar(
+  const {cancel, finished} = animateCar(
     carElement,
     distanceToFinish,
     duration,
   );
-  cancelAnimations.set(id, cancelAnimation);
+  cancelAnimations.set(id, cancel);
   const driveResult = await driveEngine(id);
   if(driveResult.success === false) {
-    cancelAnimation()
+    cancel();
+    const isFinished = await finished;
+
+    if (!isFinished) {
+      return undefined;
+}
+    cancelAnimations.delete(id)
+    return undefined
   }
+
+  return duration / MILLISECONDS_PER_SECOND
+  
 }
 async function handleStopCar(
   id: number,
@@ -204,15 +235,19 @@ async function handlePageChange(
     pageData.cars,
     pageData.total,
     appState.garagePage,
-    handleCreateCar,
-    handleSelectCar,
     appState.selectedCar,
-    handleUpdateCar,
-    handleDeleteCar,
-    handlePageChange,
-    handleGenerateCars,
-    handleStartCar,
-    handleStopCar,
+    {
+      onCreate:handleCreateCar,
+      onSelect:handleSelectCar,
+      onUpdate: handleUpdateCar,
+      onDelete: handleDeleteCar,
+      onPageChange: handlePageChange,
+      onGenerate: handleGenerateCars,
+      onStart: handleStartCar,
+      onStop: handleStopCar,
+      onRace: handleRace,
+      onReset: handleReset,
+    }
   );
   viewContainer.replaceChildren(garageView);
 }
@@ -229,16 +264,99 @@ async function handleGenerateCars(): Promise<void> {
     pageData.cars,
     pageData.total,
     appState.garagePage,
-    handleCreateCar,
-    handleSelectCar,
     appState.selectedCar,
-    handleUpdateCar,
-    handleDeleteCar,
-    handlePageChange,
-    handleGenerateCars,
-    handleStartCar,
-    handleStopCar,
+    {
+      onCreate:handleCreateCar,
+      onSelect:handleSelectCar,
+      onUpdate: handleUpdateCar,
+      onDelete: handleDeleteCar,
+      onPageChange: handlePageChange,
+      onGenerate: handleGenerateCars,
+      onStart: handleStartCar,
+      onStop: handleStopCar,
+      onRace: handleRace,
+      onReset: handleReset,
+    }
   );
   viewContainer.replaceChildren(garageView);
+}
+async function handleRace(
+  raceCars: RaceCar[],
+): Promise<RaceResult> {
+    const racePromises = raceCars.map((raceCar) => {
+    raceCar.startButton.disabled = true;
+    raceCar.stopButton.disabled = false;
+
+    return runRaceCar(raceCar);
+});
+    const winner = await Promise.any(racePromises);
+    await saveRaceWinner(winner);
+    return winner;
+}
+
+async function handleReset(
+  raceCars: RaceCar[],
+): Promise<void> {
+    const resetPromises = raceCars.map((raceCar) => 
+    handleStopCar(
+      raceCar.id,
+      raceCar.carElement,
+    ),
+);
+  await Promise.all(resetPromises);
+
+  for (const raceCar of raceCars) {
+    raceCar.startButton.disabled = false;
+    raceCar.stopButton.disabled = true;
+  }
+}
+async function runRaceCar(
+  raceCar: RaceCar,
+): Promise<RaceResult> {
+  const time = await handleStartCar(
+    raceCar.id,
+    raceCar.carElement,
+    raceCar.finishElement,
+  );
+  if (time === undefined) {
+    throw new Error('Time undefined');
+  }
+
+  return { 
+    id: raceCar.id,
+    name: raceCar.name,
+    time,
+  };
+}
+async function saveRaceWinner(
+  raceResult: RaceResult,
+): Promise<Winner> {
  
+  const result = await getWinner(raceResult.id);
+ 
+  if (result === undefined) {
+     
+      const newWinner: Winner = {
+        id: raceResult.id,
+        wins: INITIAL_WIN_COUNT,
+        time: raceResult.time,
+        
+      };
+    
+      return createWinner(newWinner);
+  }
+    
+  const updatedWinner: Winner = {
+    id: result.id,
+    wins: result.wins + WIN_INCREMENT,
+    time: Math.min(
+      result.time,
+      raceResult.time,
+    )
+  };
+  return updateWinner(
+      updatedWinner.id,
+      updatedWinner,
+  );
+    
 }
