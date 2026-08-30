@@ -1,4 +1,4 @@
 export type AnimationController = {
-    cancel: () => void,
-    finished: Promise<boolean>,
+    cancel: () => void;
+    finished: Promise<boolean>;
   };

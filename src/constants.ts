@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://127.0.0.1:3005';
+export const API_BASE_URL = 'https://async-race-api-4zqe.onrender.com';
 export const GARAGE_ENDPOINT = '/garage'
 export const GARAGE_PAGE_SIZE = 7;
 export const CAR_BRANDS = [
