@@ -67,3 +67,12 @@ export function isEngineResponse(
    }
    return false;
   }
+  export function isWinnerArray(
+    value: unknown,
+  ): value is Winner[] {
+    if (Array.isArray(value)) {
+        return value.every((element) => isWinner(element));
+    }
+    return false;
+
+  }

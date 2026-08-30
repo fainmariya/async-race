@@ -2,18 +2,62 @@ import './style.css';
 import { createGarageView } from './garage';
 import { createCar, getCars, deleteCar, updateCar } from './api/garage';
 import type { CreateCarData } from './types/car';
-import {  appState, setCurrentView, setSelectedCar, setGaragePage } from './app-state';
+import type { WinnersSortField } from './types/app';
+import {  
+  appState,
+  setCurrentView,
+  setSelectedCar,
+  setGaragePage,
+  setWinnersPage,
+  setCreateCarDraft,
+  setUpdateCarDraft,
+} from './app-state';
 import type { Car } from './types/car';
-import { GARAGE_PAGE_SIZE, GENERATED_CARS_COUNT, MILLISECONDS_PER_SECOND, INITIAL_WIN_COUNT, WIN_INCREMENT } from './constants';
+import { 
+  GARAGE_PAGE_SIZE,
+  GENERATED_CARS_COUNT, 
+  MILLISECONDS_PER_SECOND,
+  INITIAL_WIN_COUNT,
+  WIN_INCREMENT,
+  WINNERS_PAGE_SIZE
+} from './constants';
 import { getRandomCarData } from './utils/random-car';
 import { startEngine, driveEngine, stopEngine } from './api/engine';
 import { animateCar, getAnimationDuration, getDistanceToFinish } from './utils/animation';
 import type { RaceCar, RaceResult } from './types/race';
 import type { Winner} from './types/winner';
-import { getWinner, updateWinner } from './api/winners';
-import { createWinner } from './api/winners';
+import {
+  createWinner,
+  deleteWinner,
+  getWinner,
+  updateWinner,
+  
+} from './api/winners';
+import { createWinnersView } from './winners';
+import { getWinnersTablePage } from './services/winners';
+import { setWinnersSortField, setWinnersSortOrder } from './app-state';
 
 
+async function renderWinners(): Promise<void> {
+  const pageData = await getWinnersTablePage(
+    appState.winnersPage,
+    WINNERS_PAGE_SIZE,
+    appState.winnersSortField,
+    appState.winnersSortOrder,
+  );
+
+  const winnersView = createWinnersView(
+    pageData.items,
+    pageData.total,
+    appState.winnersPage,
+    handleWinnersPageChange,
+    handleWinnersSort,
+    appState.winnersSortField,
+    appState.winnersSortOrder,
+  );
+
+  viewContainer.replaceChildren(winnersView);
+}
 const cancelAnimations = new Map<number, () => void>();
 const appElement = document.querySelector<HTMLDivElement>('#app');
 if (!appElement) {
@@ -34,11 +78,13 @@ buttonWinners.className = 'nav-button';
 buttonWinners.textContent = 'Winners';
 
 appElement.append(buttonGarage, buttonWinners);
-buttonWinners.addEventListener('click', () => {
+buttonWinners.addEventListener('click', async() => {
   setCurrentView('winners');
+  await renderWinners();
 });
-buttonGarage.addEventListener('click', () => {
+buttonGarage.addEventListener('click', async () => {
   setCurrentView('garage');
+  await renderGarage();
 });
 const viewContainer = document.createElement('main');
 viewContainer.className = 'view-container';
@@ -52,6 +98,8 @@ viewContainer.append(createGarageView(
   pageData.total,
   appState.garagePage,
   appState.selectedCar,
+  appState.createCarDraft,
+  appState.updateCarDraft,
   {
     onCreate:handleCreateCar,
     onSelect:handleSelectCar,
@@ -63,6 +111,8 @@ viewContainer.append(createGarageView(
     onStop: handleStopCar,
     onRace: handleRace,
     onReset: handleReset,
+    onCreateDraftChange: handleCreateDraftChange,
+    onUpdateDraftChange: handleUpdateDraftChange,
   }
 ));
 
@@ -79,7 +129,9 @@ async function handleCreateCar(
     pageData.cars, 
     pageData.total, 
     appState.garagePage,
-    appState.selectedCar, 
+    appState.selectedCar,
+    appState.createCarDraft,
+    appState.updateCarDraft,
     {
       onCreate:handleCreateCar,
       onSelect:handleSelectCar,
@@ -91,12 +143,18 @@ async function handleCreateCar(
       onStop: handleStopCar,
       onRace: handleRace,
       onReset: handleReset,
+      onCreateDraftChange: handleCreateDraftChange,
+      onUpdateDraftChange: handleUpdateDraftChange,
     }
   );
   viewContainer.replaceChildren(garageView);
 }
 function handleSelectCar(car: Car): void {
-  setSelectedCar(car)
+  setSelectedCar(car);
+  setUpdateCarDraft({
+    name: car.name,
+    color: car.color,
+  });
 }
 async function handleUpdateCar(
   id: number,
@@ -114,6 +172,8 @@ async function handleUpdateCar(
     pageData.total,
     appState.garagePage,
     appState.selectedCar,
+    appState.createCarDraft,
+    appState.updateCarDraft,
     {
       onCreate:handleCreateCar,
       onSelect:handleSelectCar,
@@ -125,6 +185,8 @@ async function handleUpdateCar(
       onStop: handleStopCar,
       onRace: handleRace,
       onReset: handleReset,
+      onCreateDraftChange: handleCreateDraftChange,
+      onUpdateDraftChange: handleUpdateDraftChange,
     }
   );
   viewContainer.replaceChildren(garageView);
@@ -133,6 +195,7 @@ async function handleDeleteCar(
   id: number,
 ): Promise<void> {
   await deleteCar(id);
+  await deleteWinner(id);
   
   if (appState.selectedCar !== undefined 
     && appState.selectedCar.id === id) {
@@ -155,6 +218,8 @@ async function handleDeleteCar(
     pageData.total,
     appState.garagePage,
     appState.selectedCar,
+    appState.createCarDraft,
+    appState.updateCarDraft,
     {
       onCreate:handleCreateCar,
       onSelect:handleSelectCar,
@@ -166,6 +231,8 @@ async function handleDeleteCar(
       onStop: handleStopCar,
       onRace: handleRace,
       onReset: handleReset,
+      onCreateDraftChange: handleCreateDraftChange,
+      onUpdateDraftChange: handleUpdateDraftChange,
     }
   );
   viewContainer.replaceChildren(garageView);
@@ -236,6 +303,8 @@ async function handlePageChange(
     pageData.total,
     appState.garagePage,
     appState.selectedCar,
+    appState.createCarDraft,
+    appState.updateCarDraft,
     {
       onCreate:handleCreateCar,
       onSelect:handleSelectCar,
@@ -247,6 +316,8 @@ async function handlePageChange(
       onStop: handleStopCar,
       onRace: handleRace,
       onReset: handleReset,
+      onCreateDraftChange: handleCreateDraftChange,
+      onUpdateDraftChange: handleUpdateDraftChange,
     }
   );
   viewContainer.replaceChildren(garageView);
@@ -265,6 +336,8 @@ async function handleGenerateCars(): Promise<void> {
     pageData.total,
     appState.garagePage,
     appState.selectedCar,
+    appState.createCarDraft,
+    appState.updateCarDraft,
     {
       onCreate:handleCreateCar,
       onSelect:handleSelectCar,
@@ -276,6 +349,8 @@ async function handleGenerateCars(): Promise<void> {
       onStop: handleStopCar,
       onRace: handleRace,
       onReset: handleReset,
+      onCreateDraftChange: handleCreateDraftChange,
+      onUpdateDraftChange: handleUpdateDraftChange,
     }
   );
   viewContainer.replaceChildren(garageView);
@@ -359,4 +434,67 @@ async function saveRaceWinner(
       updatedWinner,
   );
     
+}
+async function renderGarage(): Promise<void> {
+  const pageData = await getCars(
+    appState.garagePage,
+    GARAGE_PAGE_SIZE,
+  );
+
+  const garageView = createGarageView(
+    pageData.cars,
+    pageData.total,
+    appState.garagePage,
+    appState.selectedCar,
+    appState.createCarDraft,
+    appState.updateCarDraft,
+    {
+      onCreate: handleCreateCar,
+      onSelect: handleSelectCar,
+      onUpdate: handleUpdateCar,
+      onDelete: handleDeleteCar,
+      onPageChange: handlePageChange,
+      onGenerate: handleGenerateCars,
+      onStart: handleStartCar,
+      onStop: handleStopCar,
+      onRace: handleRace,
+      onReset: handleReset,
+      onCreateDraftChange: handleCreateDraftChange,
+      onUpdateDraftChange: handleUpdateDraftChange,
+    },
+  );
+
+  viewContainer.replaceChildren(garageView);
+}
+async function handleWinnersPageChange(
+  page: number,
+): Promise<void> {
+  setWinnersPage(page);
+  await renderWinners();
+}
+async function handleWinnersSort(
+  field: WinnersSortField,
+): Promise<void> {
+  if (field === appState.winnersSortField) {
+    if (appState.winnersSortOrder === 'desc') {
+      setWinnersSortOrder('asc');
+  } else {
+    setWinnersSortOrder('desc');
+  }
+} else {
+  setWinnersSortField(field);
+  setWinnersSortOrder('desc');
+}
+  setWinnersPage(1)
+  await renderWinners()
+}
+function handleCreateDraftChange(
+  data: CreateCarData,
+): void {
+  setCreateCarDraft(data);
+}
+function handleUpdateDraftChange(
+  data: CreateCarData,
+): void {
+  setUpdateCarDraft(data);
 }

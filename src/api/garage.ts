@@ -1,5 +1,5 @@
 import type { Car, CreateCarData, GaragePageData } from '../types/car';
-import { API_BASE_URL, GARAGE_ENDPOINT } from '../constants';
+import { API_BASE_URL, GARAGE_ENDPOINT, HTTP_NOT_FOUND_STATUS } from '../constants';
 import { isCar, isCarArray } from '../utils/type-guards';
 
 export async function getCars(
@@ -82,3 +82,19 @@ if (!response.ok) {
     throw new TypeError('Failed to delete car.')
 }
 }
+export async function getCar(
+    id: number,
+): Promise<Car | undefined> {
+    const response = await fetch(`${API_BASE_URL}${GARAGE_ENDPOINT}/${id}`);
+    if (response.status === HTTP_NOT_FOUND_STATUS) {
+        return undefined;
+    }
+    if (response.ok === false) {
+      throw new Error('Failed to get car.');
+    }
+    const data: unknown = await response.json();
+    if (!isCar(data)) {
+        throw new TypeError('Invalid car data')
+    }
+    return data;
+    }

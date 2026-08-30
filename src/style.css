@@ -435,3 +435,120 @@ body {
   background: var(--accent);
   color: var(--background);
 }
+.winners {
+  width: min(900px, 100%);
+  margin-top: 32px;
+}
+
+.winners__title {
+  margin: 0;
+  color: var(--text);
+  font-size: 36px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.winners__count {
+  margin: 8px 0 28px;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.winners__table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.winners__table th {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--accent);
+  color: var(--accent);
+  text-align: center;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.winners__table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+  text-align: center;
+}
+
+.winners__table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.winners__table tbody tr:hover {
+  background: rgb(255 255 255 / 3%);
+}
+
+.winners__table .car-svg {
+  position: static;
+  display: block;
+  width: 90px;
+  height: 40px;
+  margin: 0 auto;
+}
+.garage-car__track .car-svg {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100px;
+  height: 40px;
+}
+.winners__info {
+  display: flex;
+  gap: 24px;
+  margin: 12px 0 28px;
+}
+
+.winners__count,
+.winners__page {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+}
+.winners__pagination {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.winners__pagination-button {
+  min-width: 100px;
+  padding: 10px 18px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.winners__pagination-button:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--background);
+}
+
+.winners__pagination-button:disabled {
+  border-color: var(--border);
+  color: var(--muted);
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.winners__sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.2s;
+}
+
+.winners__sortable:hover {
+  opacity: 0.7;
+}

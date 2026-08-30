@@ -1,14 +1,9 @@
 import type { Car, CreateCarData } from './types/car';
 import type { RaceCar, RaceResult } from './types/race';
+import { createCarSvg } from './components/car-svg';
 import { 
     GARAGE_PAGE_SIZE, 
     GENERATE_CARS_BUTTON_TEXT, 
-    SVG_NAMESPACE, 
-    CAR_BODY_PATH,
-    CAR_REAR_WHEEL_X,
-    CAR_WHEEL_Y,
-    CAR_WHEEL_RADIUS,
-    CAR_FRONT_WHEEL_X,
     START_BUTTON_TEXT,
     STOP_BUTTON_TEXT,
     RACE_BUTTON_TEXT,
@@ -36,7 +31,9 @@ function createGarageHeader(count: number): HTMLElement {
     return garageHeader;
   }
   function createCreatePanel(
+    draft: CreateCarData,
     onCreate: (data: CreateCarData) => Promise<void>,
+    onDraftChange: (data: CreateCarData) => void,
   ): HTMLElement {
     const createPanel = document.createElement('section');
     createPanel.className = 'garage__panel';
@@ -49,10 +46,24 @@ function createGarageHeader(count: number): HTMLElement {
     garagePanelInput.className = 'garage__input';
     garagePanelInput.type = 'text';
     garagePanelInput.placeholder = 'Car name';
+    garagePanelInput.value = draft.name;
+    garagePanelInput.addEventListener('input', () => {
+        onDraftChange({
+          name: garagePanelInput.value,
+          color: garageColor.value,
+        });
+      });
 
     const garageColor = document.createElement('input');
     garageColor.className = 'garage__color';
     garageColor.type = 'color';
+    garageColor.value = draft.color;
+    garageColor.addEventListener('input', () => {
+        onDraftChange({
+          name: garagePanelInput.value,
+          color: garageColor.value,
+        });
+      });
 
     const garageActionButton = document.createElement('button');
     garageActionButton.textContent = 'CREATE';
@@ -93,10 +104,12 @@ function createGarageHeader(count: number): HTMLElement {
   }
 function createUpdatePanel(
     selectedCar: Car | undefined,
+    draft: CreateCarData | undefined,
     onUpdate: (
         id: number,
         data: CreateCarData,
-    ) => Promise<void>
+    ) => Promise<void>,
+    onDraftChange: (data: CreateCarData) => void,
 ): HTMLElement {
     const updatePanel = document.createElement('section');
     updatePanel.className = 'garage__panel';
@@ -113,12 +126,23 @@ function createUpdatePanel(
     const isDisabled = selectedCar === undefined;
 
     garageUpdateInput.disabled = isDisabled;
+    garageUpdateInput.addEventListener('input', () => {
+        onDraftChange({
+          name: garageUpdateInput.value,
+          color: garageUpdateColor.value,
+        });
+      });
 
     const garageUpdateColor = document.createElement('input');
     garageUpdateColor.className = 'garage__color';
     garageUpdateColor.type = 'color';
     garageUpdateColor.disabled = isDisabled;
-    
+    garageUpdateColor.addEventListener('input', () => {
+        onDraftChange({
+          name: garageUpdateInput.value,
+          color: garageUpdateColor.value,
+        });
+      });
 
     const garageUpdateActionButton = document.createElement('button');
     garageUpdateActionButton.className = 'garage__action-button';
@@ -127,9 +151,9 @@ function createUpdatePanel(
     garageUpdateActionButton.disabled = isDisabled;
 
     garageUpdateActionButton.addEventListener('click', async () => {
-      if (selectedCar === undefined) {
-        return;
-      }
+        if (selectedCar === undefined) {
+            return;
+          }
       const name = garageUpdateInput.value.trim();
         if (name === ''){
             return;
@@ -147,37 +171,16 @@ function createUpdatePanel(
     garageUpdateActionRow.append(garageUpdateColor, garageUpdateActionButton);
     updatePanel.append(updatePanelTitle, garageUpdateInput, garageUpdateActionRow);
 
-    if (selectedCar) {
+    if (draft !== undefined) {
+        garageUpdateInput.value = draft.name;
+        garageUpdateColor.value = draft.color;
+      } else if (selectedCar !== undefined) {
         garageUpdateInput.value = selectedCar.name;
         garageUpdateColor.value = selectedCar.color;
       }
+      
     return updatePanel;
 }
-function createCarSvg(color: string): SVGSVGElement {
-  const elementCar = document.createElementNS(SVG_NAMESPACE, 'svg');
-  elementCar.setAttribute('viewBox', '0 0 100 40');
-  elementCar.classList.add('garage-car__svg');
-  const carBody = document.createElementNS(SVG_NAMESPACE, 'path');
-  carBody.setAttribute('d',CAR_BODY_PATH);
-  carBody.setAttribute('fill', color);
-
-  const leftWheel = document.createElementNS(SVG_NAMESPACE, 'circle');
-  leftWheel.classList.add('garage-car__wheel');
-  leftWheel.setAttribute('cx', CAR_REAR_WHEEL_X);
-  leftWheel.setAttribute('cy', CAR_WHEEL_Y);
-  leftWheel.setAttribute('r', CAR_WHEEL_RADIUS); 
-  leftWheel.setAttribute('fill', color);
-    
-  const rightWheel = document.createElementNS(SVG_NAMESPACE, 'circle');
-  rightWheel.classList.add('garage-car__wheel');
-  rightWheel.setAttribute('cx', CAR_FRONT_WHEEL_X);
-  rightWheel.setAttribute('cy', CAR_WHEEL_Y);
-  rightWheel.setAttribute('r', CAR_WHEEL_RADIUS); 
-  rightWheel.setAttribute('fill', color);
-    
-  elementCar.append(carBody, leftWheel, rightWheel);
-    return elementCar;
-    }
     type CarTrackElements = {
         track: HTMLElement;
         carSvg: SVGSVGElement;
@@ -230,6 +233,8 @@ function createCarSvg(color: string): SVGSVGElement {
         ) => Promise<void>;
         onRace: (raceCars: RaceCar[]) => Promise<RaceResult>;
         onReset: (raceCars: RaceCar[]) => Promise<void>;
+        onCreateDraftChange: (data: CreateCarData) => void;
+        onUpdateDraftChange: (data: CreateCarData) => void;
       };
       type GarageControlsElements = {
         element: HTMLElement;
@@ -360,6 +365,8 @@ export function createGarageView(
     total: number,
     page: number,
     selectedCar: Car | undefined,
+    createCarDraft: CreateCarData,
+    updateCarDraft: CreateCarData | undefined,
     callbacks: GarageViewCallbacks,
 ): HTMLElement {
     const element = document.createElement('section');
@@ -377,7 +384,7 @@ export function createGarageView(
     const {
         element: garageControls,
         onSelect: handleSelectInView,
-      } = createGarageControls(selectedCar, callbacks);
+      } = createGarageControls(selectedCar, createCarDraft, updateCarDraft, callbacks);
     const { 
         element: garageList, 
         raceCars,
@@ -617,17 +624,24 @@ function createRaceCar(
   }
   function createGarageControls(
     selectedCar: Car | undefined,
+    createCarDraft: CreateCarData,
+    updateCarDraft: CreateCarData | undefined,
     callbacks: GarageViewCallbacks,
   ): GarageControlsElements {
     const garageControls = document.createElement('div');
     garageControls.className = 'garage__controls';
 
-    const createPanel = createCreatePanel(callbacks.onCreate);
-    let updatePanel = createUpdatePanel(selectedCar, callbacks.onUpdate);
+    const createPanel = createCreatePanel(
+        createCarDraft,
+        callbacks.onCreate,
+        callbacks.onCreateDraftChange,
+    );
+        
+    let updatePanel = createUpdatePanel(selectedCar, updateCarDraft, callbacks.onUpdate, callbacks.onUpdateDraftChange,);
 
     const handleSelectInView = (car: Car): void => {
         callbacks.onSelect(car);
-        const newUpdatePanel = createUpdatePanel(car, callbacks.onUpdate);
+        const newUpdatePanel = createUpdatePanel(car, updateCarDraft, callbacks.onUpdate,callbacks.onUpdateDraftChange,);
         updatePanel.replaceWith(newUpdatePanel);
         updatePanel = newUpdatePanel;
       };
@@ -641,3 +655,4 @@ function createRaceCar(
       onSelect: handleSelectInView,
     }
   }
+ 

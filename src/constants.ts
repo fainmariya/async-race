@@ -55,4 +55,9 @@ export const CAR_MODELS = [
   export const HTTP_NOT_FOUND_STATUS = 404;
   export const INITIAL_WIN_COUNT = 1;
   export const WIN_INCREMENT = 1;
-
+  export const WINNERS_PAGE_SIZE = 10;
+  export const TOTAL_COUNT_HEADER = 'X-Total-Count';
+  export const MISSING_TOTAL_COUNT_ERROR = 'Missing X-Total-Count header.';
+  export const INVALID_TOTAL_COUNT_ERROR = 'Invalid X-Total-Count header.';
+  export const DEFAULT_CAR_COLOR = '#000000';
+  
